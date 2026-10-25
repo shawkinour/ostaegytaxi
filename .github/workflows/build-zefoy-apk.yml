@@ -5,7 +5,10 @@ on:
       - zefoy-cooldown-companion-build
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
+concurrency:
+  group: zefoy-companion-publish
+  cancel-in-progress: true
 jobs:
   android:
     runs-on: ubuntu-latest
@@ -30,3 +33,9 @@ jobs:
           name: Zefoy-Companion-APK
           path: zefoy-app/build/outputs/apk/debug/zefoy-app-debug.apk
           if-no-files-found: error
+      - name: Publish direct APK download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp zefoy-app/build/outputs/apk/debug/zefoy-app-debug.apk ZefoyCompanion.apk
+          gh release create zefoy-companion-v1.0 ZefoyCompanion.apk --target "$GITHUB_SHA" --title "Zefoy Companion Android v1.0" --notes "Unofficial companion app for saved TikTok links, cooldown tracking, manual browser access, and Android reminders. Does not bypass cooldowns, CAPTCHAs, or generate engagement."
